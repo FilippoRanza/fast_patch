@@ -1,0 +1,16 @@
+# This is an example macro File
+# This line, as the one above, is a comment and is ignored by fast_patch.pl
+
+# names are separated from thier value by one,or more, whitespace
+GE 'Gaussian Elimination'
+
+# Values can be included into '' or into "".
+DA "Dijkstra's algorithm"
+
+# Names can contain any character
+nrm 'Newton–Raphson method'
+123 'A number'
+
+
+# Also Values can contain any character but their delimiters
+A11 'Apollo 11 the First Man on the Moon: July 20, 1969'

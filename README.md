@@ -32,4 +32,3 @@ fast_patch.pl will search for each occurrence of each *NAME* and replace
 it with the proper *VALUE*.
 
 Lines that starts with '#' are considerd comments and are ignored.
- 
