@@ -57,31 +57,52 @@ sub patch{
 
     my %macros = load_marco;
     my $ps = 0;
+    my $indent = 0;
     while(<$in>){
 
+        # check if the line is inside  an 'align'/'equation' block
         $ps = 1 if(/\\begin\{align|equation(.+)?\}/);
         $ps = 0 if(/\\end\{align|equation(.+)?\}/);
+
+        # if the line is inside an 'align'/'equation' block
         if($ps){
+            # set \letf and \right to all parenthesis
             s|(\\left)?\(|\\left\(|g;
             s|(\\right)?\)|\\right\)|g;
 
             s|(\\left)?\[|\\left\[|g;
             s|(\\right)?\]|\\right\]|g;
 
+            # convert each || into \abs{} and each \|\| into \norm{}
             s/\\\|([^\|]+)\\\|/\\norm\{$1\}/g;
             s/\|([^\|]+)\|/\\abs\{$1\}/g;
 
         }
 
+        # apply externally defined macros
         for my $k (keys %macros){
             s|$k|$macros{$k}|g;
         }
 
-        print {$out} $_;
+        # indent only the inner part of each block
+        $indent-- if(/\\end\{.+\}/);
+
+        # print to the output file, printing $indent \t before the line
+        print {$out} "\t" x $indent . $_;
+
+        # indent only the inner part of each block
+        $indent++ if(/\\begin\{.+\}/);
     }
 }
 
+
 sub run_patch{
+    # run the automatic refactor on
+    # each input file:
+    # open the file for reading, a temp file as
+    # output, call 'patch'
+    # then renames the input as ORIGINAL.bak
+    # and the temp as ORIGINAL
     (my $in_name) = @_;
     open my $in, $in_name || die "$!";
     (my $out, my $out_name) = tempfile();
