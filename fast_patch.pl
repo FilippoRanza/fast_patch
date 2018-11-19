@@ -29,15 +29,21 @@ my $DEF_MACRO_FILE = 'macro.txt';
 
 
 sub load_marco{
+    # open and parse macro.txt
+    # this file contains some optinal
+    # macros. Those macros will be applied
+    # by patch on each line.
     my %out;
     if (-f $DEF_MACRO_FILE){
         open my $fp, $DEF_MACRO_FILE || die "$!";
         while(<$fp>){
-
+            # ignore empty lines or line that starts with #
             if(/^$/ or /^#/){
                 next;
             }
-
+            # macros are in this format:
+            # MACRO_NAME 'text_to_substitute' or
+            # MACRO_NAME  "text_to_substitute"
             if (/^(.+)\s+'(.+)'$/ or /^(.+)\s+"(.+)"$/){
                 $out{$1} = $2;
             }
