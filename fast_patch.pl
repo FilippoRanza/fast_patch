@@ -44,7 +44,7 @@ sub load_marco{
             # macros are in this format:
             # MACRO_NAME 'text_to_substitute' or
             # MACRO_NAME  "text_to_substitute"
-            if (/^(.+)\s+'(.+)'$/ or /^(.+)\s+"(.+)"$/){
+            if (/^(.+)\s+'(.+)'$/ || /^(.+)\s+\"(.+)"$/){
                 $out{$1} = $2;
             }
             else{
