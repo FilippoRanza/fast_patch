@@ -56,7 +56,22 @@ sub load_marco{
     return %out;
 }
 
+sub indent_print{
+    # adjust code indetation, and print
+    # each latex block content is indent by
+    # one more \t
+    (my $i, my $l, my $out) = @_;
 
+    $i-- if(/\\end\{.+\}/);
+
+    my $indent = "\t" x $i;
+    $l =~ s|^(\s*)(.+)$|$indent$2|;
+    print {$out} $l;
+
+    $i++ if(/\\begin\{.+\}/);
+
+    return $i;
+}
 
 sub patch{
     (my $in, my $out) = @_;
@@ -90,14 +105,7 @@ sub patch{
             s|$k|$macros{$k}|g;
         }
 
-        # indent only the inner part of each block
-        $indent-- if(/\\end\{.+\}/);
-
-        # print to the output file, printing $indent \t before the line
-        print {$out} "\t" x $indent . $_;
-
-        # indent only the inner part of each block
-        $indent++ if(/\\begin\{.+\}/);
+        $indent = indent_print $indent, $_, $out;
     }
 }
 
