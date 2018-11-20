@@ -25,7 +25,19 @@ use strict;
 use File::Temp qw/ tempfile tempdir /;
 use File::Copy qw/ move /;
 
+use Getopt::Long;
+
+
 my $DEF_MACRO_FILE = 'macro.txt';
+my $VERBOSE = 0;
+
+sub logging {
+    my ($msg, $a) = @_;
+    $a = 0 unless ($a);
+    if($VERBOSE || $a > 2){
+        print "$msg\n";
+    }
+}
 
 
 sub load_marco{
@@ -137,6 +149,7 @@ sub run_patch{
     # then renames the input as ORIGINAL.bak
     # and the temp as ORIGINAL
     (my $in_name) = @_;
+    logging "Refactoring $in_name";
     open my $in, $in_name || die "$!";
     (my $out, my $out_name) = tempfile();
 
@@ -146,11 +159,12 @@ sub run_patch{
     close $out;
 
     move $in_name, "$in_name.bak" || print $!;
+    logging "Making backup: $in_name.bak";
     move $out_name, "$in_name" || print $!;
-
+    logging "Refactor File: $in_name";
 }
 
-
+GetOptions('verbose' => \$VERBOSE);
 
 foreach my $arg (@ARGV){
     run_patch $arg;
