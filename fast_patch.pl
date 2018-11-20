@@ -34,7 +34,7 @@ my $VERBOSE = 0;
 sub logging {
     my ($msg, $a) = @_;
     $a = 0 unless ($a);
-    if($VERBOSE || $a > 2){
+    if($VERBOSE || $a){
         print "$msg\n";
     }
 }
@@ -164,8 +164,28 @@ sub run_patch{
     logging "Refactor File: $in_name";
 }
 
-GetOptions('verbose' => \$VERBOSE);
+sub get_files{
+    my ($a) = @_;
+    my @files;
+    if($a){
+        opendir(my $dh, '.') || die $!;
+        @files = grep {/^.+\.tex$/ && -f "$_" }  readdir($dh);
+        closedir $dh;
+    }
+    else{
+        @files = grep {-f $_ } @ARGV;
+    }
 
-foreach my $arg (@ARGV){
-    run_patch $arg;
+    return @files;
+}
+
+
+my $automatic;
+GetOptions('verbose' => \$VERBOSE,
+           'auto' => \$automatic);
+
+my @files = get_files $automatic;
+
+foreach my $file (@files){
+    run_patch $file;
 }

@@ -11,6 +11,7 @@ named ORIGINAL.bak . ORIGINAL is the name of the current input file.
 
 ### Command Line Options
     --verbose  : enables verbose mode
+    --auto     : enables automatic .tex file look up in current directory
 
 
 
