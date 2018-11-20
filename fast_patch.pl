@@ -60,17 +60,37 @@ sub indent_print{
     # adjust code indetation, and print
     # each latex block content is indent by
     # one more \t
-    (my $i, my $l, my $out) = @_;
+    (my $i, my $out, my $c) = @_;
 
-    $i-- if(/\\end\{.+\}/);
+    unless ($c) {
+      $i-- if(/\\end\{.+\}/);
+    }
 
     my $indent = "\t" x $i;
-    $l =~ s|^(\s*)(.+)$|$indent$2|;
-    print {$out} $l;
+    s|^(\s*)(.+)$|$indent$2|;
+    print {$out} $_;
 
-    $i++ if(/\\begin\{.+\}/);
+    unless ($c) {
+      $i++ if(/\\begin\{.+\}/);
+    }
 
     return $i;
+}
+
+sub refactor_equation{
+  # refactor the content of a align or equation block
+
+  # set \letf and \right to all parenthesis
+  s|(\\left)?\(|\\left\(|g;
+  s|(\\right)?\)|\\right\)|g;
+
+  s|(\\left)?\[|\\left\[|g;
+  s|(\\right)?\]|\\right\]|g;
+
+  # convert each || into \abs{} and each \|\| into \norm{}
+  s/\\\|([^\\\|]+)\\\|/\\norm\{$1\}/g;
+  s/\|([^\|]+)\|/\\abs\{$1\}/g;
+
 }
 
 sub patch{
@@ -81,23 +101,22 @@ sub patch{
     my $indent = 0;
     while(<$in>){
 
+        # skip comments
+        if(/^\s*%.*/){
+          # avoid block check on comments,
+          # just print them with current indetation
+          $indent = indent_print $indent, $out, 1;
+          next;
+        }
+
         # check if the line is inside  an 'align'/'equation' block
-        $ps = 1 if(/\\begin\{align|equation(.+)?\}/);
-        $ps = 0 if(/\\end\{align|equation(.+)?\}/);
+        # support nested align/equation(probably not supported by Latex)
+        $ps++ if(/\\begin\{align|equation(.+)?\}/);
+        $ps-- if(/\\end\{align|equation(.+)?\}/);
 
         # if the line is inside an 'align'/'equation' block
         if($ps){
-            # set \letf and \right to all parenthesis
-            s|(\\left)?\(|\\left\(|g;
-            s|(\\right)?\)|\\right\)|g;
-
-            s|(\\left)?\[|\\left\[|g;
-            s|(\\right)?\]|\\right\]|g;
-
-            # convert each || into \abs{} and each \|\| into \norm{}
-            s/\\\|([^\|]+)\\\|/\\norm\{$1\}/g;
-            s/\|([^\|]+)\|/\\abs\{$1\}/g;
-
+          refactor_equation;
         }
 
         # apply externally defined macros
@@ -105,7 +124,7 @@ sub patch{
             s|$k|$macros{$k}|g;
         }
 
-        $indent = indent_print $indent, $_, $out;
+        $indent = indent_print $indent, $out;
     }
 }
 
