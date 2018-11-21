@@ -10,9 +10,11 @@ has the ORIGINAL name while a backup version is also created. Backup is
 named ORIGINAL.bak . ORIGINAL is the name of the current input file.
 
 ### Command Line Options
-    --verbose  : enables verbose mode
-    --auto     : enables automatic .tex file look up in current directory
 
+| Argument | Effect |
+|--------|-------|
+| --verbose  | enables verbose mode|
+| --auto     | find, and refactor, all *.tex* file in current directory and all its subdirectories, others file given from command line are ignored|
 
 
 ### Refactor Notes

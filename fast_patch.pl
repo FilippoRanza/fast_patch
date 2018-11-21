@@ -26,7 +26,7 @@ use File::Temp qw/ tempfile tempdir /;
 use File::Copy qw/ move /;
 
 use Getopt::Long;
-
+use File::Spec::Functions;
 
 my $DEF_MACRO_FILE = 'macro.txt';
 my $VERBOSE = 0;
@@ -164,18 +164,42 @@ sub run_patch{
     logging "Refactor File: $in_name";
 }
 
+sub find_files{
+    # automatically finds file
+    # in given directory and all
+    # its subdirectories, recursively
+    my ($dir) = @_;
+    $dir = $dir || '.';
+
+    opendir(my $dh, $dir) || die $!;
+    my @files;
+    foreach my $e (readdir $dh){
+        next if $e =~ /^\./;
+        $e = catdir($dir, $e);
+        if(-f $e){
+            push @files, $e;
+        }
+        elsif(-d $e){
+            push @files, find_files($e);
+        }
+    }
+    closedir $dh;
+
+    return @files;
+}
+
 sub get_files{
+    # get files to parse
+    # those can be found automatically
+    # or given by the user
     my ($a) = @_;
     my @files;
     if($a){
-        opendir(my $dh, '.') || die $!;
-        @files = grep {/^.+\.tex$/ && -f "$_" }  readdir($dh);
-        closedir $dh;
+        @files = grep {/^.+\.tex$/ && -f "$_" }  find_files;
     }
     else{
         @files = grep {-f $_ } @ARGV;
     }
-
     return @files;
 }
 
@@ -186,6 +210,7 @@ GetOptions('verbose' => \$VERBOSE,
 
 my @files = get_files $automatic;
 
+
 foreach my $file (@files){
-    run_patch $file;
+   run_patch $file;
 }
