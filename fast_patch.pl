@@ -31,6 +31,12 @@ use File::Spec::Functions;
 my $DEF_MACRO_FILE = 'macro.txt';
 my $VERBOSE = 0;
 
+
+my %LABEL_KEYS = (
+    'section' => 'sec',
+    'chapter' => 'ch',
+);
+
 sub logging {
     my ($msg, $a) = @_;
     $a = 0 unless ($a);
@@ -79,7 +85,7 @@ sub indent_print{
     }
 
     my $indent = "\t" x $i;
-    s|^(\s*)(.+)$|$indent$2|;
+    s|^\s*(.+)$|$indent$1|;
     print {$out} $_;
 
     unless ($c) {
@@ -105,12 +111,43 @@ sub refactor_equation{
 
 }
 
+sub make_label{
+    # finds if a line is the beginning of
+    # a section, subsection or a chapter and
+    # if necessary makes a new label
+
+    my ($prev) = @_;
+    $prev = $prev || '';
+
+    if(/\\label/){
+        $prev = '';
+    }
+
+    if($prev){
+        $_ = "\\label{$prev}\n$_";
+    }
+    # this will match subchapter, that does not exists...
+    if(/\\(?:sub)*(section|chapter)\{(.+)\}/){
+        $prev = $2;
+        my $tmp = $1;
+        $prev =~ s/\s+/_/g;
+        $prev = "$LABEL_KEYS{$tmp}:$prev"
+    }
+    else{
+        $prev = '';
+    }
+
+    return $prev;
+}
+
+
 sub patch{
-    (my $in, my $out) = @_;
+    (my $in, my $out, my $l) = @_;
 
     my %macros = load_marco;
     my $ps = 0;
     my $indent = 0;
+    my $prev = '';
     while(<$in>){
 
         # skip comments
@@ -136,6 +173,10 @@ sub patch{
             s|$k|$macros{$k}|g;
         }
 
+        if($l){
+            $prev = make_label $prev;    
+        }
+
         $indent = indent_print $indent, $out;
     }
 }
@@ -148,12 +189,12 @@ sub run_patch{
     # output, call 'patch'
     # then renames the input as ORIGINAL.bak
     # and the temp as ORIGINAL
-    (my $in_name) = @_;
+    my ($in_name, $label) = @_;
     logging "Refactoring $in_name";
     open my $in, $in_name || die "$!";
     (my $out, my $out_name) = tempfile();
 
-    patch $in, $out;
+    patch $in, $out, $label;
 
     close $in;
     close $out;
@@ -205,12 +246,14 @@ sub get_files{
 
 
 my $automatic;
+my $label;
 GetOptions('verbose' => \$VERBOSE,
-           'auto' => \$automatic);
+           'auto' => \$automatic,
+           'label' => \$label);
 
 my @files = get_files $automatic;
 
 
 foreach my $file (@files){
-   run_patch $file;
+   run_patch $file, $label;
 }

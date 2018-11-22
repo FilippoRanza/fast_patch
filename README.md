@@ -3,7 +3,7 @@ Automatically refactor Latex code
 
 ## Usage
 ```
-    [perl] fast_patch.pl latex_file [...]
+    [perl] fast_patch.pl [options...] [latex_file...]
 ```
 This script modify *inplace* all given latex files. The update version
 has the ORIGINAL name while a backup version is also created. Backup is
@@ -15,7 +15,7 @@ named ORIGINAL.bak . ORIGINAL is the name of the current input file.
 |--------|-------|
 | --verbose  | enables verbose mode|
 | --auto     | find, and refactor, all *.tex* file in current directory and all its subdirectories, others file given from command line are ignored|
-
+|--label| Automatically add a label under 'section', 'subsection', 'subsubsection' and 'chapter'. Label marker is based on section/chapter name. The new label is added only if needed.|
 
 ### Refactor Notes
 fast_patch.pl automatically modifies file inplace. It starts from a
